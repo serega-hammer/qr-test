@@ -1,0 +1,22 @@
+[
+  {
+    "id": "DEV001",
+    "name": "Промышленный насос",
+    "model": "Grundfos UP 15-14 BA",
+    "serial": "SN-987654321",
+    "status": "В работе",
+    "location": "Цех №2, станция 4",
+    "last_maintenance": "2024-10-15",
+    "notes": "Заменить фильтр до 01.12.2024"
+  },
+  {
+    "id": "DEV002",
+    "name": "ЧПУ Станок Fanuc",
+    "model": "Alpha-D14LiA",
+    "serial": "FNC-445566",
+    "status": "На обслуживании",
+    "location": "Цех №1, линия 3",
+    "last_maintenance": "2024-11-01",
+    "notes": ""
+  }
+]
