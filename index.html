@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Карточка устройства</title>
+  <style>
+    :root { --bg: #f8f9fa; --card: #ffffff; --text: #1d1d1f; --subtext: #6e6e73; --border: #e5e5ea; --green: #e6f4ea; --yellow: #fef7e0; --red: #fce8e6; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 16px; line-height: 1.5; }
+    .card { max-width: 420px; margin: 0 auto; background: var(--card); border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .status { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+    .status.В\ работе { background: var(--green); color: #0d5c36; }
+    .status.На\ обслуживании { background: var(--yellow); color: #8a5d00; }
+    .status.Неисправно, .status.Выведено\ из\ эксплуатации { background: var(--red); color: #9c1c1c; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .meta { font-size: 13px; color: var(--subtext); margin-bottom: 16px; }
+    .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .row:last-child { border-bottom: none; }
+    .label { color: var(--subtext); font-size: 13px; }
+    .value { font-weight: 500; text-align: right; max-width: 60%; word-break: break-word; }
+    .error { text-align: center; padding: 40px 20px; color: #9c1c1c; }
+    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: var(--subtext); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    async function init() {
+      const app = document.getElementById('app');
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      if (!id) {
+        app.innerHTML = `<div class="error">❌ В ссылке отсутствует параметр <code>?id=...</code><br><br>Пример: <code>site.ru/?id=DEV001</code></div>`;
+        return;
+      }
+
+      try {
+        // ?v=... ломает кэш GitHub Pages, чтобы всегда грузить свежие данные
+        const res = await fetch('devices.json?v=' + Date.now());
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const devices = await res.json();
+        const dev = devices.find(d => d.id === id);
+
+        if (!dev) {
+          app.innerHTML = `<div class="error">🔍 Устройство <code>${id}</code> не найдено в базе</div>`;
+          return;
+        }
+
+        const statusClass = dev.status ? dev.status.replace(/\s/g, '\\ ') : '';
+        const rows = Object.entries(dev)
+          .filter(([k]) => k !== 'id' && k !== 'status')
+          .map(([k, v]) => {
+            const label = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            const val = v || '—';
+            return `<div class="row"><span class="label">${label}</span><span class="value">${val}</span></div>`;
+          }).join('');
+
+        app.innerHTML = `
+          <div class="card">
+            <span class="status ${statusClass}">${dev.status || 'Статус не указан'}</span>
+            <h1>${dev.name || 'Без названия'}</h1>
+            <div class="meta">ID: ${dev.id}</div>
+            ${rows}
+          </div>
+          <div class="footer">Данные обновлены: ${new Date().toLocaleString('ru-RU')}</div>
+        `;
+      } catch (err) {
+        app.innerHTML = `<div class="error">⚠️ Ошибка загрузки данных:<br>${err.message}</div>`;
+      }
+    }
+    init();
+  </script>
+</body>
+</html>
